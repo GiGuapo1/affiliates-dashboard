@@ -1,8 +1,6 @@
 import { google } from "googleapis";
 import { unstable_cache } from "next/cache";
 
-// ── Google Auth ─────────────────────────────────────────────────────────────
-
 function getGoogleAuth() {
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   if (!raw) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON is not set");
@@ -12,8 +10,6 @@ function getGoogleAuth() {
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
 }
-
-// ── Raw sheet fetcher (cached 5 min) ────────────────────────────────────────
 
 async function fetchSheetRaw(
   spreadsheetId: string,
@@ -33,7 +29,6 @@ async function fetchSheetRaw(
 const SHEET_NAMES = ["Ecommerce", "Dropshipping", "Comunidade"] as const;
 type SheetName = (typeof SHEET_NAMES)[number];
 
-// Cache for 5 minutes to avoid hitting Sheets API quota
 const cachedFetch = unstable_cache(
   async (spreadsheetId: string, sheetName: string) =>
     fetchSheetRaw(spreadsheetId, sheetName),
@@ -41,12 +36,6 @@ const cachedFetch = unstable_cache(
   { revalidate: 300 }
 );
 
-// ── Public helper ────────────────────────────────────────────────────────────
-
-/**
- * Returns all rows from all 3 sheets of a spreadsheet.
- * Shape: { Ecommerce: string[][], Dropshipping: string[][], Comunidade: string[][] }
- */
 export async function getAllSheets(
   spreadsheetId: string
 ): Promise<Record<SheetName, string[][]>> {
@@ -58,13 +47,11 @@ export async function getAllSheets(
   ) as Record<SheetName, string[][]>;
 }
 
-// ── Spreadsheet IDs from env ─────────────────────────────────────────────────
-
 export function getSpreadsheetIds() {
   return {
     sessions: process.env.SHEETS_SESSIONS_ID ?? "",
     trials: process.env.SHEETS_TRIALS_ID ?? "",
     newPayments: process.env.SHEETS_NP_ID ?? "",
-    newSellers: process.env.SHEETS_NS_ID ;? "",
+    newSellers: process.env.SHEETS_NS_ID ?? "",
   };
 }
