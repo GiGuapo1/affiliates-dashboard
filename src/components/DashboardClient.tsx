@@ -10,7 +10,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import type { WeekPoint, MonthPoint } from "@/lib/parser";
 
@@ -37,10 +36,60 @@ interface Props {
 // ── Metric config ─────────────────────────────────────────────────────────────
 
 const METRICS = [
-  { key: "sessions",    label: "Sessões",       color: "#3B82F6", icon: "👁" },
-  { key: "trials",      label: "Trials",        color: "#8B5CF6", icon: "🚀" },
-  { key: "newPayments", label: "New Payments",  color: "#10B981", icon: "💳" },
-  { key: "newSellers",  label: "New Sellers",   color: "#F59E0B", icon: "🏪" },
+  {
+    key: "sessions",
+    label: "Sess&#xf5;es",
+    labelPlain: "Sessões",
+    color: "#0050C3",
+    bg: "#EEF4FF",
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      </svg>
+    ),
+  },
+  {
+    key: "trials",
+    label: "Trials",
+    labelPlain: "Trials",
+    color: "#0284C7",
+    bg: "#E0F2FE",
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+  },
+  {
+    key: "newPayments",
+    label: "New Payments",
+    labelPlain: "New Payments",
+    color: "#059669",
+    bg: "#ECFDF5",
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+      </svg>
+    ),
+  },
+  {
+    key: "newSellers",
+    label: "New Sellers",
+    labelPlain: "New Sellers",
+    color: "#D97706",
+    bg: "#FFFBEB",
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+    ),
+  },
 ] as const;
 
 type MetricKey = (typeof METRICS)[number]["key"];
@@ -52,52 +101,8 @@ function total(series: WeekPoint[] | MonthPoint[]) {
 }
 
 function shortLabel(label: string) {
-  // "19 a 25/04" → "19/04"  |  "31/05 a 06/06" → "31/05"
   const parts = label.split(" a ");
   return parts[0].includes("/") ? parts[0] : `${parts[0]}/${parts[1].split("/")[1]}`;
-}
-
-// ── Metric Card ───────────────────────────────────────────────────────────────
-
-function MetricCard({
-  label,
-  color,
-  icon,
-  value,
-  active,
-  onClick,
-}: {
-  label: string;
-  color: string;
-  icon: string;
-  value: number;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`text-left p-5 rounded-xl border-2 transition-all ${
-        active
-          ? "border-current shadow-md scale-[1.02]"
-          : "border-gray-200 bg-white hover:border-gray-300"
-      }`}
-      style={{ borderColor: active ? color : undefined, background: active ? `${color}08` : undefined }}
-    >
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-2xl">{icon}</span>
-        {active && (
-          <span className="text-xs font-medium px-2 py-0.5 rounded-full text-white" style={{ background: color }}>
-            selecionado
-          </span>
-        )}
-      </div>
-      <p className="text-sm text-gray-500 font-medium">{label}</p>
-      <p className="text-3xl font-bold text-gray-900 mt-1">
-        {value.toLocaleString("pt-BR")}
-      </p>
-    </button>
-  );
 }
 
 // ── Custom tooltip ────────────────────────────────────────────────────────────
@@ -105,12 +110,15 @@ function MetricCard({
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm">
-      <p className="font-semibold text-gray-700 mb-1">{label}</p>
+    <div className="bg-white border border-gray-200 rounded-xl shadow-xl p-3 text-sm min-w-[140px]">
+      <p className="font-semibold text-gray-700 mb-1.5 text-xs uppercase tracking-wide">{label}</p>
       {payload.map((p: any) => (
-        <p key={p.name} style={{ color: p.fill }}>
-          {p.name}: <strong>{p.value.toLocaleString("pt-BR")}</strong>
-        </p>
+        <div key={p.name} className="flex items-center justify-between gap-4">
+          <span className="text-gray-500 text-xs">{p.name}</span>
+          <span className="font-bold" style={{ color: p.fill }}>
+            {p.value.toLocaleString("pt-BR")}
+          </span>
+        </div>
       ))}
     </div>
   );
@@ -124,18 +132,16 @@ export default function DashboardClient({ affiliateName, partnerCode, data }: Pr
 
   const metric = METRICS.find((m) => m.key === activeMetric)!;
 
-  // Build chart data
   const chartPoints = period === "weekly"
     ? data[activeMetric].weekly.map((pt) => ({
         name: shortLabel(pt.label),
-        [metric.label]: pt.value,
+        [metric.labelPlain]: pt.value,
       }))
     : data[activeMetric].monthly.map((pt) => ({
         name: pt.monthLabel,
-        [metric.label]: pt.value,
+        [metric.labelPlain]: pt.value,
       }));
 
-  // Totals (sum of all weekly data)
   const totals = {
     sessions:    total(data.sessions.weekly),
     trials:      total(data.trials.weekly),
@@ -143,47 +149,75 @@ export default function DashboardClient({ affiliateName, partnerCode, data }: Pr
     newSellers:  total(data.newSellers.weekly),
   };
 
+  const initials = affiliateName
+    .split(" ")
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs"
+              style={{ background: "#0050C3" }}
+            >
+              N
             </div>
-            <div>
-              <h1 className="font-semibold text-gray-900 leading-none">Portal de Afiliados</h1>
-              <p className="text-xs text-gray-500 mt-0.5">{affiliateName} · {partnerCode}</p>
-            </div>
+            <div className="h-5 w-px bg-gray-200" />
+            <span className="text-sm font-medium text-gray-700">Portal de Afiliados</span>
           </div>
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-sm text-gray-500 hover:text-gray-700 transition"
-          >
-            Sair →
-          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-medium text-gray-900 leading-none">{affiliateName}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{partnerCode}</p>
+            </div>
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+              style={{ background: "#0050C3" }}
+            >
+              {initials}
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="text-sm text-gray-400 hover:text-gray-700 transition flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
 
-        {/* Period toggle */}
+        {/* Page title + period toggle */}
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Resultados</h2>
-          <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Resultados acumulados do seu c&#xf3;digo <span className="font-medium text-gray-700">{partnerCode}</span>
+            </p>
+          </div>
+          <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
             {(["weekly", "monthly"] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition ${
+                className="px-4 py-1.5 rounded-md text-sm font-medium transition-all"
+                style={
                   period === p
-                    ? "bg-brand-500 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
+                    ? { background: "#0050C3", color: "#fff" }
+                    : { color: "#6B7280" }
+                }
               >
                 {p === "weekly" ? "Semanal" : "Mensal"}
               </button>
@@ -191,60 +225,98 @@ export default function DashboardClient({ affiliateName, partnerCode, data }: Pr
           </div>
         </div>
 
-        {/* Metric cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {METRICS.map((m) => (
-            <MetricCard
-              key={m.key}
-              label={m.label}
-              color={m.color}
-              icon={m.icon}
-              value={totals[m.key]}
-              active={activeMetric === m.key}
-              onClick={() => setActiveMetric(m.key)}
-            />
-          ))}
+        {/* KPI cards */}
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          {METRICS.map((m) => {
+            const isActive = activeMetric === m.key;
+            return (
+              <button
+                key={m.key}
+                onClick={() => setActiveMetric(m.key)}
+                className="text-left p-5 rounded-2xl border-2 bg-white transition-all hover:shadow-md"
+                style={{
+                  borderColor: isActive ? m.color : "#E5E7EB",
+                  boxShadow: isActive ? `0 0 0 4px ${m.color}18` : undefined,
+                }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{ background: m.bg, color: m.color }}
+                  >
+                    {m.icon}
+                  </div>
+                  {isActive && (
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ background: m.color }}
+                    />
+                  )}
+                </div>
+                <p
+                  className="text-xs font-medium text-gray-500 mb-1"
+                  dangerouslySetInnerHTML={{ __html: m.label }}
+                />
+                <p className="text-2xl font-extrabold text-gray-900">
+                  {totals[m.key].toLocaleString("pt-BR")}
+                </p>
+              </button>
+            );
+          })}
         </div>
 
         {/* Chart */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-gray-900">
-              {metric.label} ℔ visão {period === "weekly" ? "semanal" : "mensal"}
-            </h3>
-            <span
-              className="text-xs font-medium px-2.5 py-1 rounded-full text-white"
+            <div>
+              <h2
+                className="font-bold text-gray-900"
+                dangerouslySetInnerHTML={{ __html: metric.label }}
+              />
+              <p className="text-xs text-gray-400 mt-0.5">
+                Vis&#xe3;o {period === "weekly" ? "semanal" : "mensal"}
+              </p>
+            </div>
+            <div
+              className="text-xs font-semibold px-3 py-1.5 rounded-full text-white"
               style={{ background: metric.color }}
             >
               Total: {totals[activeMetric].toLocaleString("pt-BR")}
-            </span>
+            </div>
           </div>
 
           {chartPoints.length === 0 ? (
-            <div className="h-64 flex items-center justify-center text-gray-400 text-sm">
-              Nenhum dado encontrado para este afiliado.
+            <div className="h-64 flex flex-col items-center justify-center text-gray-400 gap-2">
+              <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className="text-sm">Nenhum dado encontrado para este afiliado.</p>
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartPoints} barSize={period === "weekly" ? 28 : 48}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={chartPoints} barSize={period === "weekly" ? 24 : 40} barCategoryGap="30%">
+                <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
                 <XAxis
                   dataKey="name"
-                  tick={{ fontSize: 12, fill: "#6B7280" }}
+                  tick={{ fontSize: 11, fill: "#9CA3AF" }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 12, fill: "#6B7280" }}
+                  tick={{ fontSize: 11, fill: "#9CA3AF" }}
                   axisLine={false}
                   tickLine={false}
-                  width={45}
+                  width={40}
                 />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: `${metric.color}10` }} />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{ fill: `${metric.color}08`, radius: 4 }}
+                />
                 <Bar
-                  dataKey={metric.label}
+                  dataKey={metric.labelPlain}
                   fill={metric.color}
-                  radius={[4, 4, 0, 0]}
+                  radius={[6, 6, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -252,18 +324,28 @@ export default function DashboardClient({ affiliateName, partnerCode, data }: Pr
         </div>
 
         {/* Data table */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-900 text-sm">Detalhamento — {metric.label}</h3>
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3
+              className="font-semibold text-gray-900 text-sm"
+              dangerouslySetInnerHTML={{
+                __html: `Detalhamento &mdash; ${metric.label}`,
+              }}
+            />
+            <span className="text-xs text-gray-400">
+              {period === "weekly" ? "por semana" : "por m&#xea;s"}
+            </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left px-6 py-3 text-gray-500 font-medium">
-                    {period === "weekly" ? "Semana" : "Mês"}
+                <tr style={{ background: "#F9FAFB" }}>
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    {period === "weekly" ? "Semana" : "M&#xea;s"}
                   </th>
-                  <th className="text-right px-6 py-3 text-gray-500 font-medium">Valor</th>
+                  <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Valor
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -271,10 +353,15 @@ export default function DashboardClient({ affiliateName, partnerCode, data }: Pr
                   ? data[activeMetric].weekly.map((pt) => ({ label: pt.label, value: pt.value }))
                   : data[activeMetric].monthly.map((pt) => ({ label: pt.monthLabel, value: pt.value }))
                 ).map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-3 text-gray-700">{row.label}</td>
-                    <td className="px-6 py-3 text-right font-semibold text-gray-900">
-                      {row.value.toLocaleString("pt-BR")}
+                  <tr key={i} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-3.5 text-gray-600">{row.label}</td>
+                    <td className="px-6 py-3.5 text-right">
+                      <span
+                        className="font-bold text-sm px-3 py-1 rounded-lg"
+                        style={{ color: metric.color, background: metric.bg }}
+                      >
+                        {row.value.toLocaleString("pt-BR")}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -284,7 +371,7 @@ export default function DashboardClient({ affiliateName, partnerCode, data }: Pr
         </div>
 
         <p className="text-xs text-center text-gray-400 pb-4">
-          Dados atualizados manualmente · clique em uma métrica para ver seu gráfico
+          Dados atualizados manualmente &middot; clique em uma m&#xe9;trica para ver seu gr&#xe1;fico
         </p>
       </main>
     </div>
