@@ -69,7 +69,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
           {[
             { label: "Sess&#xf5;es", desc: "Visitas geradas pelo seu link" },
-            { label: "Trials", desc: "Per&#xed;odos de teste iniciados" },
+            { label: "Trials", desc: "Períodos de teste iniciados" },
             { label: "Pagamentos", desc: "Novas assinaturas pagas" },
             { label: "Vendedores", desc: "Lojas ativas referenciadas" },
           ].map((item) => (
