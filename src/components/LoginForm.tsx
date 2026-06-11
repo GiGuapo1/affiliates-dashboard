@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useState, type FormEvent, type CSSProperties } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -14,7 +14,7 @@ export default function LoginForm() {
 
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -43,6 +43,7 @@ export default function LoginForm() {
         className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12"
         style={{ background: "#0050C3" }}
       >
+        {/* Logo */}
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white font-bold text-sm">
             N
@@ -50,6 +51,7 @@ export default function LoginForm() {
           <span className="text-white font-semibold text-sm">Nuvemshop</span>
         </div>
 
+        {/* Center content */}
         <div>
           <div className="mb-8">
             <div
@@ -69,19 +71,20 @@ export default function LoginForm() {
             </p>
           </div>
 
+          {/* Stats pills */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "Sess&#xf5;es", icon: "&#x1f441;" },
-              { label: "Trials", icon: "&#x26a1;" },
-              { label: "Payments", icon: "&#x1f4b3;" },
-              { label: "Sellers", icon: "&#x1f3ea;" },
+              { label: "Sess&#xf5;es", icon: "👁" },
+              { label: "Trials", icon: "⚡" },
+              { label: "Payments", icon: "💳" },
+              { label: "Sellers", icon: "🏪" },
             ].map((item) => (
               <div
                 key={item.label}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-white/80"
                 style={{ background: "rgba(255,255,255,0.1)" }}
               >
-                <span dangerouslySetInnerHTML={{ __html: item.icon }} />
+                <span>{item.icon}</span>
                 <span
                   className="font-medium"
                   dangerouslySetInnerHTML={{ __html: item.label }}
@@ -99,6 +102,7 @@ export default function LoginForm() {
       {/* Right panel — form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-sm">
+          {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <div
               className="w-7 h-7 rounded-md flex items-center justify-center text-white font-bold text-xs"
@@ -106,7 +110,7 @@ export default function LoginForm() {
             >
               N
             </div>
-            <span className="font-semibold text-gray-900 text-sm">Nuvemshop &middot; Portal de Afiliados</span>
+            <span className="font-semibold text-gray-900 text-sm">Nuvemshop · Portal de Afiliados</span>
           </div>
 
           <div className="mb-8">
@@ -129,7 +133,8 @@ export default function LoginForm() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
+                  style={{ "--tw-ring-color": "#0050C3" } as CSSProperties}
                   placeholder="seu-partner-code"
                 />
               </div>
@@ -145,7 +150,7 @@ export default function LoginForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition"
                   placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"
                 />
               </div>
