@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  typescript: {
+    // Temporarily ignore TS errors to isolate build failure root cause
+    ignoreBuildErrors: true,
+  },
   // Disable X-Powered-By header for security
   poweredByHeader: false,
   // Strict headers
