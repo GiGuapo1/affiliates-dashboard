@@ -10,27 +10,27 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-white">
       {/* Hero */}
-      <div style={{ background: "#EEEDFE" }} className="px-6 py-20 text-center">
+      <div style={{ background: "#EEF4FF" }} className="px-6 py-20 text-center">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-center gap-2 mb-8">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-              style={{ background: "#7B00FF" }}
+              style={{ background: "#0050C3" }}
             >
               N
             </div>
             <span className="font-semibold text-gray-800">Nuvemshop</span>
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Seus resultados, em um só lugar
+            Seus resultados, em um s\u00f3 lugar
           </h1>
           <p className="text-lg text-gray-600 mb-8">
-            Acompanhe o desempenho do seu negócio com dados atualizados semanalmente.
+            Acompanhe o desempenho do seu neg\u00f3cio com dados atualizados semanalmente.
           </p>
           <Link
             href="/login"
             className="inline-block px-8 py-3 rounded-lg text-white font-semibold transition-colors"
-            style={{ background: "#7B00FF" }}
+            style={{ background: "#0050C3" }}
           >
             Acessar Dashboard
           </Link>
@@ -40,8 +40,8 @@ export default async function HomePage() {
       {/* Features */}
       <div className="max-w-4xl mx-auto px-6 py-16 grid grid-cols-2 md:grid-cols-4 gap-6">
         {[
-          { label: "Sessões", color: "#3B82F6", desc: "Visitas geradas" },
-          { label: "Trials", color: "#7B00FF", desc: "Novos trials iniciados" },
+          { label: "Sess\u00f5es", color: "#0050C3", desc: "Visitas geradas" },
+          { label: "Trials", color: "#0284C7", desc: "Novos trials iniciados" },
           { label: "New Payments", color: "#10B981", desc: "Pagamentos convertidos" },
           { label: "New Sellers", color: "#F59E0B", desc: "Vendedores ativados" },
         ].map((m) => (
