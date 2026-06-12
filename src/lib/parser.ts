@@ -74,7 +74,7 @@ function monthLabel(isoDate: string): string {
 // ── Core extractor ───────────────────────────────────────────────────────────
 
 /**
- * Given all rows from one sheet and a partner code,
+ * Given all rows from one sheet tab and a partner code,
  * returns a WeekPoint[] sorted chronologically.
  */
 function extractFromSheet(rows: string[][], partnerCode: string): WeekPoint[] {
@@ -113,7 +113,6 @@ function extractFromSheet(rows: string[][], partnerCode: string): WeekPoint[] {
       }
 
       // Monthly format: partner_code is at wk.colIdx-1, value is at wk.colIdx
-      // (e.g. columns: ["", partner_code, value] with week label as the value column header)
       if (wk.colIdx > 0 && (row[wk.colIdx - 1] ?? "").toString().trim() === partnerCode) {
         const raw = row[wk.colIdx];
         value = raw !== undefined && raw !== "" ? Number(raw) || 0 : 0;
@@ -122,7 +121,6 @@ function extractFromSheet(rows: string[][], partnerCode: string): WeekPoint[] {
       }
     }
 
-    // Only include this week if partner was found
     if (found) {
       const { start, end } = parseWeekDates(wk.label);
       points.push({
@@ -139,18 +137,17 @@ function extractFromSheet(rows: string[][], partnerCode: string): WeekPoint[] {
 }
 
 /**
- * Searches all 3 sheets for the partner code and merges results.
- * A partner should appear in only one sheet, but we sum just in case.
+ * Searches all tabs for the partner code and merges results.
+ * Iterates over Object.values(allSheets) — works for any tab names
+ * (weekly sheets with "Comunidade" and monthly sheets with "Consideração").
  */
 export function extractMetric(
   allSheets: Record<string, string[][]>,
   partnerCode: string
 ): WeekPoint[] {
-  const sheetNames = ["Ecommerce", "Dropshipping", "Comunidade"];
   const byWeek = new Map<string, WeekPoint>();
 
-  for (const name of sheetNames) {
-    const rows = allSheets[name];
+  for (const rows of Object.values(allSheets)) {
     if (!rows) continue;
     const points = extractFromSheet(rows, partnerCode);
     for (const pt of points) {
