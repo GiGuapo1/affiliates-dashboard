@@ -16,35 +16,38 @@ export default async function DashboardPage() {
   // ── Fetch data from Google Sheets ───────────────────────────────────────────
   const ids = getSpreadsheetIds();
 
-  const [sessionsSheets, trialsSheets, npSheets, nsSheets] = await Promise.all([
-    getAllSheets(ids.sessions),
-    getAllSheets(ids.trials),
-    getAllSheets(ids.newPayments),
-    getAllSheets(ids.newSellers),
+  // Fetch weekly sheets (Maio 2025 + late Abril) and monthly sheets (full month totals) in parallel
+  const [
+    sessionsWeekSheets, trialsWeekSheets, npWeekSheets, nsWeekSheets,
+    sessionsMthSheets,  trialsMthSheets,  npMthSheets,  nsMthSheets,
+  ] = await Promise.all([
+    getAllSheets(ids.weekly.sessions),
+    getAllSheets(ids.weekly.trials),
+    getAllSheets(ids.weekly.newPayments),
+    getAllSheets(ids.weekly.newSellers),
+    getAllSheets(ids.monthly.sessions),
+    getAllSheets(ids.monthly.trials),
+    getAllSheets(ids.monthly.newPayments),
+    getAllSheets(ids.monthly.newSellers),
   ]);
 
   // ── Extract affiliate data ──────────────────────────────────────────────────
-  const sessionsWeekly   = extractMetric(sessionsSheets,   partnerCode);
-  const trialsWeekly     = extractMetric(trialsSheets,     partnerCode);
-  const newPaymentsWeekly = extractMetric(npSheets,        partnerCode);
-  const newSellersWeekly  = extractMetric(nsSheets,        partnerCode);
-
   const data = {
     sessions: {
-      weekly:  sessionsWeekly,
-      monthly: aggregateMonthly(sessionsWeekly),
+      weekly:  extractMetric(sessionsWeekSheets, partnerCode),
+      monthly: aggregateMonthly(extractMetric(sessionsMthSheets, partnerCode)),
     },
     trials: {
-      weekly:  trialsWeekly,
-      monthly: aggregateMonthly(trialsWeekly),
+      weekly:  extractMetric(trialsWeekSheets, partnerCode),
+      monthly: aggregateMonthly(extractMetric(trialsMthSheets, partnerCode)),
     },
     newPayments: {
-      weekly:  newPaymentsWeekly,
-      monthly: aggregateMonthly(newPaymentsWeekly),
+      weekly:  extractMetric(npWeekSheets, partnerCode),
+      monthly: aggregateMonthly(extractMetric(npMthSheets, partnerCode)),
     },
     newSellers: {
-      weekly:  newSellersWeekly,
-      monthly: aggregateMonthly(newSellersWeekly),
+      weekly:  extractMetric(nsWeekSheets, partnerCode),
+      monthly: aggregateMonthly(extractMetric(nsMthSheets, partnerCode)),
     },
   };
 
