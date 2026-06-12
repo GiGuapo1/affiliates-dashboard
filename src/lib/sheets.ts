@@ -12,7 +12,6 @@ type SheetName = (typeof SHEET_NAMES)[number];
  * Response format: /*O_o*\/\ngoogle.visualization.Query.setResponse({...});
  */
 function parseGvizResponse(text: string): string[][] {
-  // Strip JSONP wrapper
   const jsonStart = text.indexOf("(") + 1;
   const jsonEnd = text.lastIndexOf(")");
   if (jsonStart <= 0 || jsonEnd <= 0) return [];
@@ -28,8 +27,6 @@ function parseGvizResponse(text: string): string[][] {
 
   const { cols, rows } = json.table;
 
-  // gviz treats the first sheet row as column headers (stored in cols[].label).
-  // Prepend them as row 0 so the parser can find week labels like "19 a 25/04".
   const headerRow = cols.map((col) => col.label ?? "");
 
   const dataRows = rows.map((row) => {
@@ -53,7 +50,6 @@ async function fetchSheetRaw(
   const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 
   const res = await fetch(url, { next: { revalidate: 0 } });
-  // 404 = tab doesn't exist in this spreadsheet; return empty gracefully
   if (!res.ok) {
     console.error(`Failed to fetch sheet "${sheetName}": HTTP ${res.status}`);
     return [];
@@ -63,20 +59,16 @@ async function fetchSheetRaw(
   return parseGvizResponse(text);
 }
 
-// Cache for 5 minutes to avoid hammering the Sheets endpoint
+// Cache for 5 minutes
 const cachedFetch = unstable_cache(
   async (spreadsheetId: string, sheetName: string) =>
     fetchSheetRaw(spreadsheetId, sheetName),
-  ["sheet-data-v2"],
+  ["sheet-data-v3"],
   { revalidate: 300 }
 );
 
 // ── Public helpers ────────────────────────────────────────────────────────────
 
-/**
- * Returns all rows from all 3 tabs of a spreadsheet.
- * Shape: { Ecommerce: string[][], Dropshipping: string[][], Consideração: string[][] }
- */
 export async function getAllSheets(
   spreadsheetId: string
 ): Promise<Record<SheetName, string[][]>> {
@@ -89,9 +81,17 @@ export async function getAllSheets(
 }
 
 // ── Sheet IDs ─────────────────────────────────────────────────────────────────
-// Update these IDs when new monthly sheets are provided.
 
-const SHEET_IDS = {
+/** Weekly sheets — week-by-week data (Maio 2025 + late Abril) */
+const WEEKLY_SHEET_IDS = {
+  sessions:    "1UvkyCmqKaHEDB_gMwpyqvXl1qwBUXho_RvRectjtBfQ",
+  trials:      "1c_cNHDqGQZDKX-FalvZuJRdmG-Zmo5tMSaNkzLo542w",
+  newPayments: "1vdiIgxuZKAsuJVOFjiI2oxTrp9wcg3eWYujaqymLmhs",
+  newSellers:  "1p80XabPrzssoHYbpfB7TUZ2d0q_fRZpu5qrGNnapda8",
+} as const;
+
+/** Monthly sheets — full-month totals. Add new months here as they arrive. */
+const MONTHLY_SHEET_IDS = {
   sessions:    "14rxLdX59uJXVkK8407r0cGnoc0cIcICzlEzTEgk845g", // Abril 2025
   trials:      "1PqnVRzmIxnyx7eBSIZ5fdUpUmTTqZZcdOjOawQzUmdk", // Abril 2025
   newPayments: "1QmWQy00_w2_i-fiSoClmFt1zJ5-pJiGcN6uNm0s4N6I", // Abril 2025
@@ -99,5 +99,5 @@ const SHEET_IDS = {
 } as const;
 
 export function getSpreadsheetIds() {
-  return SHEET_IDS;
+  return { weekly: WEEKLY_SHEET_IDS, monthly: MONTHLY_SHEET_IDS };
 }
