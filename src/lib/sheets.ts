@@ -88,14 +88,16 @@ export async function getAllSheets(
   ) as Record<SheetName, string[][]>;
 }
 
-/**
- * Reads the 4 spreadsheet IDs from environment variables.
- */
+// ── Sheet IDs ─────────────────────────────────────────────────────────────────
+// Update these IDs when new monthly sheets are provided.
+
+const SHEET_IDS = {
+  sessions:    "14rxLdX59uJXVkK8407r0cGnoc0cIcICzlEzTEgk845g", // Abril 2025
+  trials:      "1PqnVRzmIxnyx7eBSIZ5fdUpUmTTqZZcdOjOawQzUmdk", // Abril 2025
+  newPayments: "1QmWQy00_w2_i-fiSoClmFt1zJ5-pJiGcN6uNm0s4N6I", // Abril 2025
+  newSellers:  "1-DW7rJiHBd0m-Hlf1VeuXdDd3QdrN5uTT4fWlUGnpPY", // Abril 2025
+} as const;
+
 export function getSpreadsheetIds() {
-  return {
-    sessions: process.env.SHEETS_SESSIONS_ID ?? "",
-    trials: process.env.SHEETS_TRIALS_ID ?? "",
-    newPayments: process.env.SHEETS_NP_ID ?? "",
-    newSellers: process.env.SHEETS_NS_ID ?? "",
-  };
+  return SHEET_IDS;
 }
