@@ -13,20 +13,21 @@ export default async function DashboardPage() {
   const partnerCode = (session.user as { partnerCode?: string }).partnerCode;
   if (!partnerCode) redirect("/login");
 
-  // — Fetch all months for each metric ────────────────────────────────────────
+  // — Fetch each month's sheets for every metric ───────────────────────────────
+  // getAllSheets takes a single spreadsheet ID; we call it once per month.
   const [
     sessionsSheets,
     trialsSheets,
     npSheets,
     nsSheets,
   ] = await Promise.all([
-    getAllSheets(SHEET_IDS.sessions),
-    getAllSheets(SHEET_IDS.trials),
-    getAllSheets(SHEET_IDS.newPayments),
-    getAllSheets(SHEET_IDS.newSellers),
+    Promise.all(SHEET_IDS.sessions.map((id) => getAllSheets(id))),
+    Promise.all(SHEET_IDS.trials.map((id) => getAllSheets(id))),
+    Promise.all(SHEET_IDS.newPayments.map((id) => getAllSheets(id))),
+    Promise.all(SHEET_IDS.newSellers.map((id) => getAllSheets(id))),
   ]);
 
-  // Helper: flatten WeekPoints across all months, then aggregate to MonthPoints
+  // Helper: extract + aggregate across all months
   function buildMonthly(sheetsPerMonth: Record<string, string[][]>[]) {
     const allPoints = sheetsPerMonth.flatMap((s) => extractMetric(s, partnerCode!));
     return aggregateMonthly(allPoints);
