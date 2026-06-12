@@ -1,61 +1,43 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import { getAllSheets, getSpreadsheetIds } from "@/lib/sheets";
+import { getAllSheets, SHEET_IDS } from "@/lib/sheets";
 import { extractMetric, aggregateMonthly } from "@/lib/parser";
 import DashboardClient from "@/components/DashboardClient";
 
 export default async function DashboardPage() {
-  // ── Auth check ──────────────────────────────────────────────────────────────
+  // — Auth check ──────────────────────────────────────────────────────────────
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login");
 
   const partnerCode = (session.user as { partnerCode?: string }).partnerCode;
   if (!partnerCode) redirect("/login");
 
-  // ── Fetch data from Google Sheets ───────────────────────────────────────────
-  const ids = getSpreadsheetIds();
-
-  // Fetch weekly sheets (Maio 2025 + late Abril) and monthly sheets (full month totals) in parallel
+  // — Fetch all months for each metric ────────────────────────────────────────
   const [
-    sessionsWeekSheets, trialsWeekSheets, npWeekSheets, nsWeekSheets,
-    sessionsMthSheets,  trialsMthSheets,  npMthSheets,  nsMthSheets,
+    sessionsSheets,
+    trialsSheets,
+    npSheets,
+    nsSheets,
   ] = await Promise.all([
-    getAllSheets(ids.weekly.sessions),
-    getAllSheets(ids.weekly.trials),
-    getAllSheets(ids.weekly.newPayments),
-    getAllSheets(ids.weekly.newSellers),
-    getAllSheets(ids.monthly.sessions),
-    getAllSheets(ids.monthly.trials),
-    getAllSheets(ids.monthly.newPayments),
-    getAllSheets(ids.monthly.newSellers),
+    getAllSheets(SHEET_IDS.sessions),
+    getAllSheets(SHEET_IDS.trials),
+    getAllSheets(SHEET_IDS.newPayments),
+    getAllSheets(SHEET_IDS.newSellers),
   ]);
 
-  // ── Extract affiliate data ──────────────────────────────────────────────────
+  // Helper: flatten WeekPoints across all months, then aggregate to MonthPoints
+  function buildMonthly(sheetsPerMonth: Record<string, string[][]>[]) {
+    const allPoints = sheetsPerMonth.flatMap((s) => extractMetric(s, partnerCode!));
+    return aggregateMonthly(allPoints);
+  }
+
   const data = {
-    sessions: {
-      weekly:  extractMetric(sessionsWeekSheets, partnerCode),
-      monthly: aggregateMonthly(extractMetric(sessionsMthSheets, partnerCode)),
-    },
-    trials: {
-      weekly:  extractMetric(trialsWeekSheets, partnerCode),
-      monthly: aggregateMonthly(extractMetric(trialsMthSheets, partnerCode)),
-    },
-    newPayments: {
-      weekly:  extractMetric(npWeekSheets, partnerCode),
-      monthly: aggregateMonthly(extractMetric(npMthSheets, partnerCode)),
-    },
-    newSellers: {
-      weekly:  extractMetric(nsWeekSheets, partnerCode),
-      monthly: aggregateMonthly(extractMetric(nsMthSheets, partnerCode)),
-    },
+    sessions:    buildMonthly(sessionsSheets),
+    trials:      buildMonthly(trialsSheets),
+    newPayments: buildMonthly(npSheets),
+    newSellers:  buildMonthly(nsSheets),
   };
 
-  return (
-    <DashboardClient
-      affiliateName={session.user.name ?? partnerCode}
-      partnerCode={partnerCode}
-      data={data}
-    />
-  );
+  return <DashboardClient data={data} />;
 }
