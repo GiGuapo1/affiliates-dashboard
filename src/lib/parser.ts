@@ -137,31 +137,23 @@ function extractFromSheet(rows: string[][], partnerCode: string): WeekPoint[] {
 }
 
 /**
- * Searches all tabs for the partner code and merges results.
- * Iterates over Object.values(allSheets) — works for any tab names
- * (weekly sheets with "Comunidade" and monthly sheets with "Consideração").
+ * Searches all tabs for the partner code.
+ * Stops at the first tab where the partner is found — each partner belongs
+ * to exactly one tab (Ecommerce, Dropshipping, or Consideração/Comunidade).
+ * Iterates Object.values so it works regardless of tab names.
  */
 export function extractMetric(
   allSheets: Record<string, string[][]>,
   partnerCode: string
 ): WeekPoint[] {
-  const byWeek = new Map<string, WeekPoint>();
-
   for (const rows of Object.values(allSheets)) {
     if (!rows) continue;
     const points = extractFromSheet(rows, partnerCode);
-    for (const pt of points) {
-      if (byWeek.has(pt.label)) {
-        byWeek.get(pt.label)!.value += pt.value;
-      } else {
-        byWeek.set(pt.label, { ...pt });
-      }
+    if (points.length > 0) {
+      return points; // Partner found in this tab — stop here
     }
   }
-
-  return Array.from(byWeek.values()).sort((a, b) =>
-    a.startDate.localeCompare(b.startDate)
-  );
+  return [];
 }
 
 // ── Monthly aggregation ──────────────────────────────────────────────────────
