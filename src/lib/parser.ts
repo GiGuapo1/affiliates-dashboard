@@ -103,15 +103,26 @@ function extractFromSheet(rows: string[][], partnerCode: string): WeekPoint[] {
     for (let rowIdx = 2; rowIdx < rows.length; rowIdx++) {
       const row = rows[rowIdx];
       if (!row) continue;
+
+      // Weekly format: partner_code is at wk.colIdx, value is at wk.colIdx+1
       if ((row[wk.colIdx] ?? "").toString().trim() === partnerCode) {
         const raw = row[wk.colIdx + 1];
         value = raw !== undefined && raw !== "" ? Number(raw) || 0 : 0;
         found = true;
         break;
       }
+
+      // Monthly format: partner_code is at wk.colIdx-1, value is at wk.colIdx
+      // (e.g. columns: ["", partner_code, value] with week label as the value column header)
+      if (wk.colIdx > 0 && (row[wk.colIdx - 1] ?? "").toString().trim() === partnerCode) {
+        const raw = row[wk.colIdx];
+        value = raw !== undefined && raw !== "" ? Number(raw) || 0 : 0;
+        found = true;
+        break;
+      }
     }
 
-    // Only include this week if partner was found (or add zero if you want all weeks)
+    // Only include this week if partner was found
     if (found) {
       const { start, end } = parseWeekDates(wk.label);
       points.push({
