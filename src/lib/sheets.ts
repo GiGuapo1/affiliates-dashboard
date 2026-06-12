@@ -13,44 +13,76 @@ export const SHEET_IDS = {
 
 // ── Sheet tab names ───────────────────────────────────────────────────────────
 const SHEET_NAMES = ["Ecommerce", "Dropshipping", "Consideração"] as const;
+type SheetName = (typeof SHEET_NAMES)[number];
 
 // ── gviz response parser ──────────────────────────────────────────────────────
+// Response format: /*O_o*/\ngoogle.visualization.Query.setResponse({...});
+// Row 0 = column labels (e.g. "01 a 30/04"), rows 1+ = data rows.
+
 function parseGvizResponse(text: string): string[][] {
-  const jsonStart = text.indexOf("{");
-  const jsonEnd   = text.lastIndexOf("}") + 1;
+  const jsonStart = text.indexOf("(") + 1;
+  const jsonEnd   = text.lastIndexOf(")");
   if (jsonStart <= 0 || jsonEnd <= 0) return [];
-  const json = JSON.parse(text.slice(jsonStart, jsonEnd));
-  const cols: unknown[] = json?.table?.cols ?? [];
-  const rows: unknown[] = json?.table?.rows ?? [];
-  if (!cols.length || !rows.length) return [];
-  return (rows as { c: ({ v: unknown } | null)[] }[]).map((row) =>
-    row.c.map((cell) => (cell?.v != null ? String(cell.v) : ""))
-  );
+
+  let json: {
+    status: string;
+    table: {
+      cols: Array<{ label: string }>;
+      rows: Array<{ c: Array<{ v: unknown } | null> }>;
+    };
+  };
+  try {
+    json = JSON.parse(text.slice(jsonStart, jsonEnd));
+  } catch {
+    return [];
+  }
+
+  if (json.status !== "ok" || !json.table) return [];
+
+  const { cols, rows } = json.table;
+
+  // Row 0: column labels (contains date ranges like "01 a 30/04")
+  const headerRow = cols.map((col) => col.label ?? "");
+
+  // Rows 1+: data rows
+  const dataRows = rows.map((row) => {
+    const cells = row.c ?? [];
+    return Array.from({ length: cols.length }, (_, i) => {
+      const cell = cells[i];
+      if (!cell || cell.v === null || cell.v === undefined) return "";
+      return String(cell.v);
+    });
+  });
+
+  return [headerRow, ...dataRows];
 }
 
-// ── Fetch one tab from a public Google Sheet via gviz/tq ─────────────────────
-async function fetchSheetTab(spreadsheetId: string, sheetName: string): Promise<string[][]> {
+// ── Raw fetcher ───────────────────────────────────────────────────────────────
+
+async function fetchSheetRaw(spreadsheetId: string, sheetName: string): Promise<string[][]> {
   const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url, { next: { revalidate: 0 } });
   if (!res.ok) return [];
-  return parseGvizResponse(await res.text());
+  const text = await res.text();
+  return parseGvizResponse(text);
 }
 
-// ── Fetch all tabs for a single spreadsheet ───────────────────────────────────
-async function fetchAllTabs(spreadsheetId: string): Promise<Record<string, string[][]>> {
-  const results = await Promise.all(
-    SHEET_NAMES.map((name) => fetchSheetTab(spreadsheetId, name))
-  );
-  return Object.fromEntries(SHEET_NAMES.map((name, i) => [name, results[i]]));
-}
-
-// ── Public: fetch one spreadsheet's tabs (cached 5 min) ──────────────────────
-// Call once per sheet ID. To handle multiple months, call once per ID and
-// flatten the results in the caller.
-export const getAllSheets = unstable_cache(
-  async (spreadsheetId: string): Promise<Record<string, string[][]>> => {
-    return fetchAllTabs(spreadsheetId);
-  },
-  ["sheet-data-v5"],
+// ── Cached per (spreadsheetId, sheetName) ────────────────────────────────────
+const cachedFetch = unstable_cache(
+  async (spreadsheetId: string, sheetName: string) =>
+    fetchSheetRaw(spreadsheetId, sheetName),
+  ["sheet-data-v6"],
   { revalidate: 300 }
 );
+
+// ── Public: fetch all tabs for one spreadsheet ───────────────────────────────
+export async function getAllSheets(
+  spreadsheetId: string
+): Promise<Record<SheetName, string[][]>> {
+  const results = await Promise.all(
+    SHEET_NAMES.map((name) => cachedFetch(spreadsheetId, name))
+  );
+  return Object.fromEntries(
+    SHEET_NAMES.map((name, i) => [name, results[i]])
+  ) as Record<SheetName, string[][]>;
+}
