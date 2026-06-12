@@ -1,40 +1,64 @@
-import { google } from "googleapis";
 import { unstable_cache } from "next/cache";
 
-function getGoogleAuth() {
-  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  if (!raw) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON is not set");
-  const credentials = JSON.parse(raw);
-  return new google.auth.GoogleAuth({
-    credentials,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+// ── Sheet names ───────────────────────────────────────────────────────────────
+
+const SHEET_NAMES = ["Ecommerce", "Dropshipping", "Comunidade"] as const;
+type SheetName = (typeof SHEET_NAMES)[number];
+
+// ── gviz response parser ──────────────────────────────────────────────────────
+
+function parseGvizResponse(text: string): string[][] {
+  const jsonStart = text.indexOf("(") + 1;
+  const jsonEnd = text.lastIndexOf(")");
+  if (jsonStart <= 0 || jsonEnd <= 0) return [];
+
+  let json: { status: string; table: { cols: unknown[]; rows: Array<{ c: Array<{ v: unknown } | null> }> } };
+  try {
+    json = JSON.parse(text.slice(jsonStart, jsonEnd));
+  } catch {
+    return [];
+  }
+
+  if (json.status !== "ok" || !json.table) return [];
+
+  const { cols, rows } = json.table;
+
+  return rows.map((row) => {
+    const cells = row.c ?? [];
+    return Array.from({ length: cols.length }, (_, i) => {
+      const cell = cells[i];
+      if (!cell || cell.v === null || cell.v === undefined) return "";
+      return String(cell.v);
+    });
   });
 }
+
+// ── Raw fetcher ───────────────────────────────────────────────────────────────
 
 async function fetchSheetRaw(
   spreadsheetId: string,
   sheetName: string
 ): Promise<string[][]> {
-  const auth = getGoogleAuth();
-  const sheetsApi = google.sheets({ version: "v4", auth });
+  const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 
-  const res = await sheetsApi.spreadsheets.values.get({
-    spreadsheetId,
-    range: sheetName,
-  });
+  const res = await fetch(url, { next: { revalidate: 0 } });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch sheet "${sheetName}": HTTP ${res.status}`);
+  }
 
-  return (res.data.values ?? []) as string[][];
+  const text = await res.text();
+  return parseGvizResponse(text);
 }
 
-const SHEET_NAMES = ["Ecommerce", "Dropshipping", "Comunidade"] as const;
-type SheetName = (typeof SHEET_NAMES)[number];
-
+// Cache for 5 minutes
 const cachedFetch = unstable_cache(
   async (spreadsheetId: string, sheetName: string) =>
     fetchSheetRaw(spreadsheetId, sheetName),
   ["sheet-data"],
   { revalidate: 300 }
 );
+
+// ── Public helpers ────────────────────────────────────────────────────────────
 
 export async function getAllSheets(
   spreadsheetId: string
