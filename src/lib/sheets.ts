@@ -7,7 +7,12 @@ type SheetName = (typeof SHEET_NAMES)[number];
 
 // ── gviz response parser ──────────────────────────────────────────────────────
 
+/**
+ * Google Sheets exposes a public gviz/tq endpoint for publicly-shared sheets.
+ * Response format: /*O_o*\/\ngoogle.visualization.Query.setResponse({...});
+ */
 function parseGvizResponse(text: string): string[][] {
+  // Strip JSONP wrapper
   const jsonStart = text.indexOf("(") + 1;
   const jsonEnd = text.lastIndexOf(")");
   if (jsonStart <= 0 || jsonEnd <= 0) return [];
@@ -42,15 +47,17 @@ async function fetchSheetRaw(
   const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 
   const res = await fetch(url, { next: { revalidate: 0 } });
+  // Non-ok = tab doesn't exist or other error; return empty gracefully
   if (!res.ok) {
-    throw new Error(`Failed to fetch sheet "${sheetName}": HTTP ${res.status}`);
+    console.error(`Failed to fetch sheet "${sheetName}": HTTP ${res.status}`);
+    return [];
   }
 
   const text = await res.text();
   return parseGvizResponse(text);
 }
 
-// Cache for 5 minutes
+// Cache for 5 minutes to avoid hammering the Sheets endpoint
 const cachedFetch = unstable_cache(
   async (spreadsheetId: string, sheetName: string) =>
     fetchSheetRaw(spreadsheetId, sheetName),
@@ -60,6 +67,10 @@ const cachedFetch = unstable_cache(
 
 // ── Public helpers ────────────────────────────────────────────────────────────
 
+/**
+ * Returns all rows from all 3 tabs of a spreadsheet.
+ * Shape: { Ecommerce: string[][], Dropshipping: string[][], Comunidade: string[][] }
+ */
 export async function getAllSheets(
   spreadsheetId: string
 ): Promise<Record<SheetName, string[][]>> {
@@ -71,6 +82,9 @@ export async function getAllSheets(
   ) as Record<SheetName, string[][]>;
 }
 
+/**
+ * Reads the 4 spreadsheet IDs from environment variables.
+ */
 export function getSpreadsheetIds() {
   return {
     sessions: process.env.SHEETS_SESSIONS_ID ?? "",
