@@ -143,10 +143,10 @@ export default function DashboardClient({ affiliateName, partnerCode, data }: Pr
       }));
 
   const totals = {
-    sessions:    total(data.sessions.weekly),
-    trials:      total(data.trials.weekly),
-    newPayments: total(data.newPayments.weekly),
-    newSellers:  total(data.newSellers.weekly),
+    sessions:    total(data.sessions[period]),
+    trials:      total(data.trials[period]),
+    newPayments: total(data.newPayments[period]),
+    newSellers:  total(data.newSellers[period]),
   };
 
   const initials = affiliateName
