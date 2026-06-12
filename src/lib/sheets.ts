@@ -2,7 +2,7 @@ import { unstable_cache } from "next/cache";
 
 // ── Sheet names ───────────────────────────────────────────────────────────────
 
-const SHEET_NAMES = ["Ecommerce", "Dropshipping", "Comunidade"] as const;
+const SHEET_NAMES = ["Ecommerce", "Dropshipping", "Consideração"] as const;
 type SheetName = (typeof SHEET_NAMES)[number];
 
 // ── gviz response parser ──────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ async function fetchSheetRaw(
 const cachedFetch = unstable_cache(
   async (spreadsheetId: string, sheetName: string) =>
     fetchSheetRaw(spreadsheetId, sheetName),
-  ["sheet-data"],
+  ["sheet-data-v2"],
   { revalidate: 300 }
 );
 
@@ -75,7 +75,7 @@ const cachedFetch = unstable_cache(
 
 /**
  * Returns all rows from all 3 tabs of a spreadsheet.
- * Shape: { Ecommerce: string[][], Dropshipping: string[][], Comunidade: string[][] }
+ * Shape: { Ecommerce: string[][], Dropshipping: string[][], Consideração: string[][] }
  */
 export async function getAllSheets(
   spreadsheetId: string
