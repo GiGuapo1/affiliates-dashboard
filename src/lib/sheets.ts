@@ -13,7 +13,6 @@ export const SHEET_IDS = {
 
 // ── Sheet tab names ───────────────────────────────────────────────────────────
 const SHEET_NAMES = ["Ecommerce", "Dropshipping", "Consideração"] as const;
-type SheetName = (typeof SHEET_NAMES)[number];
 
 // ── gviz response parser ──────────────────────────────────────────────────────
 function parseGvizResponse(text: string): string[][] {
@@ -37,7 +36,7 @@ async function fetchSheetTab(spreadsheetId: string, sheetName: string): Promise<
   return parseGvizResponse(await res.text());
 }
 
-// ── Fetch all tabs for a spreadsheet ─────────────────────────────────────────
+// ── Fetch all tabs for a single spreadsheet ───────────────────────────────────
 async function fetchAllTabs(spreadsheetId: string): Promise<Record<string, string[][]>> {
   const results = await Promise.all(
     SHEET_NAMES.map((name) => fetchSheetTab(spreadsheetId, name))
@@ -45,12 +44,13 @@ async function fetchAllTabs(spreadsheetId: string): Promise<Record<string, strin
   return Object.fromEntries(SHEET_NAMES.map((name, i) => [name, results[i]]));
 }
 
-// ── Public: fetch all sheets for an array of spreadsheet IDs ─────────────────
-// Returns an array of per-spreadsheet tab maps (one entry per month).
+// ── Public: fetch one spreadsheet's tabs (cached 5 min) ──────────────────────
+// Call once per sheet ID. To handle multiple months, call once per ID and
+// flatten the results in the caller.
 export const getAllSheets = unstable_cache(
-  async (spreadsheetIds: string[]): Promise<Record<string, string[][]>[]> => {
-    return Promise.all(spreadsheetIds.map((id) => fetchAllTabs(id)));
+  async (spreadsheetId: string): Promise<Record<string, string[][]>> => {
+    return fetchAllTabs(spreadsheetId);
   },
-  ["sheet-data-v4"],
+  ["sheet-data-v5"],
   { revalidate: 300 }
 );
