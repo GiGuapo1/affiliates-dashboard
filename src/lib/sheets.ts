@@ -17,7 +17,7 @@ function parseGvizResponse(text: string): string[][] {
   const jsonEnd = text.lastIndexOf(")");
   if (jsonStart <= 0 || jsonEnd <= 0) return [];
 
-  let json: { status: string; table: { cols: unknown[]; rows: Array<{ c: Array<{ v: unknown } | null> }> } };
+  let json: { status: string; table: { cols: Array<{ label: string }>; rows: Array<{ c: Array<{ v: unknown } | null> }> } };
   try {
     json = JSON.parse(text.slice(jsonStart, jsonEnd));
   } catch {
@@ -28,7 +28,11 @@ function parseGvizResponse(text: string): string[][] {
 
   const { cols, rows } = json.table;
 
-  return rows.map((row) => {
+  // gviz treats the first sheet row as column headers (stored in cols[].label).
+  // Prepend them as row 0 so the parser can find week labels like "19 a 25/04".
+  const headerRow = cols.map((col) => col.label ?? "");
+
+  const dataRows = rows.map((row) => {
     const cells = row.c ?? [];
     return Array.from({ length: cols.length }, (_, i) => {
       const cell = cells[i];
@@ -36,6 +40,8 @@ function parseGvizResponse(text: string): string[][] {
       return String(cell.v);
     });
   });
+
+  return [headerRow, ...dataRows];
 }
 
 // ── Raw fetcher ───────────────────────────────────────────────────────────────
@@ -47,7 +53,7 @@ async function fetchSheetRaw(
   const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 
   const res = await fetch(url, { next: { revalidate: 0 } });
-  // Non-ok = tab doesn't exist or other error; return empty gracefully
+  // 404 = tab doesn't exist in this spreadsheet; return empty gracefully
   if (!res.ok) {
     console.error(`Failed to fetch sheet "${sheetName}": HTTP ${res.status}`);
     return [];
