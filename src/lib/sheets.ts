@@ -1,10 +1,10 @@
 import { unstable_cache } from "next/cache";
 
 export const SHEET_IDS = {
-    sessions:    ["1UvkyCmqKaHEDB_gMwpyqvXl1qwBUXho_RvRectjtBfQ"],
-    trials:      ["1c_cNHDqGQZDKX-FalvZuJRdmG-Zmo5tMSaNkzLo542w"],
-    newPayments: ["1vdiIgxuZKAsuJVOFjiI2oxTrp9wcg3eWYujaqymLmhs"],
-    newSellers:  ["1p80XabPrzssoHYbpfB7TUZ2d0q_fRZpu5qrGNnapda8"],
+    sessions:    ["14rxLdX59uJXVkK8407r0cGnoc0cIcICzlEzTEgk845g", "1UvkyCmqKaHEDB_gMwpyqvXl1qwBUXho_RvRectjtBfQ"],
+    trials:      ["1PqnVRzmIxnyx7eBSIZ5fdUpUmTTqZZcdOjOawQzUmdk", "1c_cNHDqGQZDKX-FalvZuJRdmG-Zmo5tMSaNkzLo542w"],
+    newPayments: ["1QmWQy00_w2_i-fiSoClmFt1zJ5-pJiGcN6uNm0s4N6I", "1vdiIgxuZKAsuJVOFjiI2oxTrp9wcg3eWYujaqymLmhs"],
+    newSellers:  ["1-DW7rJiHBd0m-Hlf1VeuXdDd3QdrN5uTT4fWlUGnpPY", "1p80XabPrzssoHYbpfB7TUZ2d0q_fRZpu5qrGNnapda8"],
 };
 
 const SHEET_NAMES = ["Ecommerce", "Dropshipping", "Comunidade"] as const;
@@ -39,7 +39,7 @@ async function fetchSheetRaw(spreadsheetId: string, sheetName: string): Promise<
 
 const cachedFetch = unstable_cache(
     async (spreadsheetId: string, sheetName: string) => fetchSheetRaw(spreadsheetId, sheetName),
-    ["sheet-data-v7"],
+    ["sheet-data-v8"],
   { revalidate: 300 }
   );
 
