@@ -180,7 +180,7 @@ export default function DashboardClient({ partnerCode, data }: Props) {
         <div>
           <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Total acumulado de Abril até hoje · c&#xf3;digo <span className="font-medium text-gray-700">{partnerCode}</span>
+            Total acumulado de Abril até {(() => { const d = new Date(); const b = (d.getDay() + 1) % 7; d.setDate(d.getDate() - b); return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }); })()} · c&#xf3;digo <span className="font-medium text-gray-700">{partnerCode}</span>
           </p>
         </div>
 
