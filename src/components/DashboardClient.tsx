@@ -9,7 +9,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer,  LabelList,
 } from "recharts";
 import type { MonthPoint } from "@/lib/parser";
 
@@ -267,50 +267,12 @@ export default function DashboardClient({ partnerCode, data }: Props) {
                   content={<CustomTooltip />}
                   cursor={{ fill: `${metric.color}08`, radius: 4 }}
                 />
-                <Bar dataKey={metric.labelPlain} fill={metric.color} radius={[6, 6, 0, 0]} />
+                <Bar dataKey={metric.labelPlain} fill={metric.color} radius={[6, 6, 0, 0]} >
+                                <LabelList dataKey={metric.labelPlain} position="top" style={{ fontSize: 11, fontWeight: 700, fill: metric.color }} formatter={(v: number) => v.toLocaleString("pt-BR")} />
+                                              </Bar>
               </BarChart>
             </ResponsiveContainer>
           )}
-        </div>
-
-        {/* Data table */}
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3
-              className="font-semibold text-gray-900 text-sm"
-              dangerouslySetInnerHTML={{ __html: `Detalhamento &mdash; ${metric.label}` }}
-            />
-            <span className="text-xs text-gray-400">por m&#xea;s</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ background: "#F9FAFB" }}>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                    M&#xea;s
-                  </th>
-                  <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                    Valor
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {data[activeMetric].map((pt, i) => (
-                  <tr key={i} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-3.5 text-gray-600">{pt.monthLabel}</td>
-                    <td className="px-6 py-3.5 text-right">
-                      <span
-                        className="font-bold text-sm px-3 py-1 rounded-lg"
-                        style={{ color: metric.color, background: metric.bg }}
-                      >
-                        {pt.value.toLocaleString("pt-BR")}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
 
         <p className="text-xs text-center text-gray-400 pb-4">
