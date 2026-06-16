@@ -19,10 +19,10 @@ export default async function DashboardPage() {
   ]);
 
   function buildMonthly(sheetsPerMonth: Record<string, string[][]>[]) {
-    const allPoints = sheetsPerMonth.flatMap((s) => extractMetric(s, partnerCode!));
-    const seen = new Set<string>();
-  const deduped = allPoints.filter(p => { if (seen.has(p.startDate)) return false; seen.add(p.startDate); return true; });
-  return aggregateMonthly(deduped);
+      const map = new Map<string, number>();
+      [...sheetsPerMonth].reverse().forEach(s => aggregateMonthly(extractMetric(s, partnerCode!)).forEach(p => map.set(p.monthLabel, p.value)));
+    const PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    return [...map.entries()].map(([ml,v])=>({monthLabel:ml,value:v})).sort((a,b)=>{const f=(s:string)=>{const[m,y]=s.split(" ");return+y*100+PT.indexOf(m);};return f(a.monthLabel)-f(b.monthLabel);});
   }
 
   const data = {
