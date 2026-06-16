@@ -10,10 +10,15 @@ import DashboardClient from "@/components/DashboardClient";
 // Format: { metric: { partnerCode: { "Month YYYY": correctValue } } }
 const MONTHLY_OVERRIDES: Record<string, Record<string, Record<string, number>>> = {
   trials:      { "s2-tecnologia": { "Maio 2025": 90 } },
-    sessions:    { "s2-tecnologia": { "Maio 2025": 767, "Junho 2025": 355 } },
+    sessions:    { "s2-tecnologia": { "Maio 2025": 767, "Junho 2025": 355 }, "nerds-de-negocios": { "Maio 2025": 3171, "Junho 2025": 701 } },
       newPayments: {},
         newSellers:  {},
         };
+
+        // Map login partner codes to sheet partner codes where they differ
+        const PARTNER_CODE_MAP: Record<string, string> = {
+          "ajuda-vitor": "ajudavitor",
+          };
 
         function applyOverrides(
           metric: string,
@@ -28,6 +33,7 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login");
   const partnerCode = (session.user as { partnerCode?: string }).partnerCode;
+  const resolvedCode = PARTNER_CODE_MAP[partnerCode!] ?? partnerCode!;
   if (!partnerCode) redirect("/login");
 
   const [sessionsSheets, trialsSheets, npSheets, nsSheets] = await Promise.all([
@@ -39,7 +45,7 @@ export default async function DashboardPage() {
 
   function buildMonthly(sheetsPerMonth: Record<string, string[][]>[]) {
       const map = new Map<string, number>();
-      [...sheetsPerMonth].reverse().forEach(s => aggregateMonthly(extractMetric(s, partnerCode!)).forEach(p => map.set(p.monthLabel, p.value)));
+      [...sheetsPerMonth].reverse().forEach(s => aggregateMonthly(extractMetric(s, resolvedCode)).forEach(p => map.set(p.monthLabel, p.value)));
     const PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
     return [...map.entries()].map(([ml,v])=>({monthLabel:ml,value:v})).sort((a,b)=>{const f=(s:string)=>{const[m,y]=s.split(" ");return+y*100+PT.indexOf(m);};return f(a.monthLabel)-f(b.monthLabel);});
   }
