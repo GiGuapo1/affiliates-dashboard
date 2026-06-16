@@ -180,7 +180,7 @@ export default function DashboardClient({ partnerCode, data }: Props) {
         <div>
           <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Resultados mensais do seu c&#xf3;digo <span className="font-medium text-gray-700">{partnerCode}</span>
+            Total acumulado de Abril até hoje · c&#xf3;digo <span className="font-medium text-gray-700">{partnerCode}</span>
           </p>
         </div>
 
@@ -314,7 +314,7 @@ export default function DashboardClient({ partnerCode, data }: Props) {
         </div>
 
         <p className="text-xs text-center text-gray-400 pb-4">
-          Dados atualizados mensalmente &middot; clique em uma m&#xe9;trica para ver seu gr&#xe1;fico
+          Dados atualizados semanalmente &middot; clique em uma m&#xe9;trica para ver seu gr&#xe1;fico
         </p>
       </main>
     </div>
