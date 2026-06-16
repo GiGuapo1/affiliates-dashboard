@@ -10,7 +10,7 @@ import DashboardClient from "@/components/DashboardClient";
 // Format: { metric: { partnerCode: { "Month YYYY": correctValue } } }
 const MONTHLY_OVERRIDES: Record<string, Record<string, Record<string, number>>> = {
   trials:      { "s2-tecnologia": { "Maio 2025": 90 } },
-    sessions:    {},
+    sessions:    { "s2-tecnologia": { "Maio 2025": 767, "Junho 2025": 355 } },
       newPayments: {},
         newSellers:  {},
         };
