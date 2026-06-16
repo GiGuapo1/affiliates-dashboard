@@ -50,7 +50,7 @@ function parseWeekDates(label: string): { start: string; end: string } {
     // "19 a 25/04"
     startDay = Number(parts[0]);
     const [ed, em] = parts[1].split("/").map(Number);
-    endDay = ed; endMonth = em; startMonth = em;
+    endDay = ed; endMonth = em; startMonth = startDay > endDay ? (em === 1 ? 12 : em - 1) : em;
   }
 
   const year = 2025;
@@ -70,6 +70,15 @@ function monthLabel(isoDate: string): string {
   const [year, month] = isoDate.split("-").map(Number);
   return `${PT_MONTHS[month - 1]} ${year}`;
 }
+
+function dominantMonthIso(start: string, end: string): string {
+  const [sy, sm, sd] = start.split("-").map(Number);
+    const [, em, ed] = end.split("-").map(Number);
+      if (sm === em) return start;
+        const lastDayOfStartMonth = new Date(sy, sm, 0).getDate();
+          const daysInStart = lastDayOfStartMonth - sd + 1;
+            return daysInStart >= 4 ? start : end;
+            }
 
 // ── Core extractor ───────────────────────────────────────────────────────────
 
@@ -127,7 +136,7 @@ function extractFromSheet(rows: string[][], partnerCode: string): WeekPoint[] {
         label: wk.label,
         startDate: start,
         endDate: end,
-        monthLabel: monthLabel(start),
+        monthLabel: monthLabel(dominantMonthIso(start, end)),
         value,
       });
     }
