@@ -249,7 +249,7 @@ export default function DashboardClient({ partnerCode, data }: Props) {
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={chartPoints} barSize={40} barCategoryGap="30%">
+              <BarChart data={chartPoints} barSize={40} barCategoryGap="30%" margin={{ top: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
                 <XAxis
                   dataKey="name"
