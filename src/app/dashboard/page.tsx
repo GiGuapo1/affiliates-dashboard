@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   function buildMonthly(sheetsPerMonth: Record<string, string[][]>[]) {
     const allPoints = sheetsPerMonth.flatMap((s) => extractMetric(s, partnerCode!));
     const seen = new Set<string>();
-  const deduped = allPoints.filter(p => { if (seen.has(p.label)) return false; seen.add(p.label); return true; });
+  const deduped = allPoints.filter(p => { if (seen.has(p.startDate)) return false; seen.add(p.startDate); return true; });
   return aggregateMonthly(deduped);
   }
 
