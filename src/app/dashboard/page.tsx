@@ -5,6 +5,25 @@ import { getAllSheets, SHEET_IDS } from "@/lib/sheets";
 import { extractMetric, aggregateMonthly } from "@/lib/parser";
 import DashboardClient from "@/components/DashboardClient";
 
+// ── Monthly value overrides ───────────────────────────────────────────────────
+// Update this map to correct monthly totals per partner.
+// Format: { metric: { partnerCode: { "Month YYYY": correctValue } } }
+const MONTHLY_OVERRIDES: Record<string, Record<string, Record<string, number>>> = {
+  trials:      { "s2-tecnologia": { "Maio 2025": 90 } },
+    sessions:    {},
+      newPayments: {},
+        newSellers:  {},
+        };
+
+        function applyOverrides(
+          metric: string,
+            partnerCode: string,
+              monthly: { monthLabel: string; value: number }[]
+              ): { monthLabel: string; value: number }[] {
+                const overrides = MONTHLY_OVERRIDES[metric]?.[partnerCode] ?? {};
+                  return monthly.map((p) => ({ ...p, value: overrides[p.monthLabel] ?? p.value }));
+                  }
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login");
@@ -26,10 +45,10 @@ export default async function DashboardPage() {
   }
 
   const data = {
-    sessions:    buildMonthly(sessionsSheets),
-    trials:      buildMonthly(trialsSheets),
-    newPayments: buildMonthly(npSheets),
-    newSellers:  buildMonthly(nsSheets),
+    sessions:    applyOverrides("sessions", partnerCode, buildMonthly(sessionsSheets)),
+    trials:      applyOverrides("trials", partnerCode, buildMonthly(trialsSheets)),
+    newPayments: applyOverrides("newPayments", partnerCode, buildMonthly(npSheets)),
+    newSellers:  applyOverrides("newSellers", partnerCode, buildMonthly(nsSheets)),
   };
 
   return <DashboardClient data={data} partnerCode={partnerCode} />;
