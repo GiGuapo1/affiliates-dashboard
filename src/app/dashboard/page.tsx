@@ -11,7 +11,7 @@ import DashboardClient from "@/components/DashboardClient";
 const MONTHLY_OVERRIDES: Record<string, Record<string, Record<string, number>>> = {
   trials:      { "s2-tecnologia": { "Maio 2025": 90 } },
     sessions:    { "s2-tecnologia": { "Maio 2025": 767, "Junho 2025": 355 } },
-      newPayments: {},
+      newPayments: { "ajudavitor": { "Maio 2025": 61 } },
         newSellers:  {},
         };
 
