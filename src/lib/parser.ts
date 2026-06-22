@@ -55,7 +55,7 @@ function parseWeekDates(label: string): { start: string; end: string } {
       startMonth = startDay > endDay ? (em === 1 ? 12 : em - 1) : em;
   }
 
-  const year = 2025;
+  const year = 2026;
     const pad = (n: number) => String(n).padStart(2, "0");
     return {
           start: `${year}-${pad(startMonth)}-${pad(startDay)}`,
